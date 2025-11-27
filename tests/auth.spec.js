@@ -75,42 +75,21 @@ function httpPost(pathname, data) {
 
 describe('Auth routes', () => {
     it('should serve GET /login', async () => {
-        const child = spawn(SERVER_CMD, SERVER_ARGS, { cwd: CWD, env: { ...process.env, PORT }, stdio: ['ignore', 'pipe', 'pipe'] });
-        child.stderr.on('data', (d) => process.stderr.write(d.toString()));
-        try {
-            await waitForServer(child);
-            const res = await httpGet('/login');
-            assert.strictEqual(res.status, 200);
-            assert.ok(/Se connecter/.test(res.body) || /Connexion/.test(res.body));
-        } finally {
-            try { child.kill(); } catch (e) { }
-        }
+        const res = await httpGet('/login');
+        assert.strictEqual(res.status, 200);
+        assert.ok(/Se connecter/.test(res.body) || /Connexion/.test(res.body));
     });
 
     it('should show invalid credentials on POST /login with wrong creds', async () => {
-        const child = spawn(SERVER_CMD, SERVER_ARGS, { cwd: CWD, env: { ...process.env, PORT }, stdio: ['ignore', 'pipe', 'pipe'] });
-        child.stderr.on('data', (d) => process.stderr.write(d.toString()));
-        try {
-            await waitForServer(child);
-            const res = await httpPost('/login', { email: 'noone@example.com', password: 'bad' });
-            assert.strictEqual(res.status, 200);
-            assert.ok(/Email ou mot de passe invalide/.test(res.body) || /mot de passe invalide/.test(res.body));
-        } finally {
-            try { child.kill(); } catch (e) { }
-        }
+        const res = await httpPost('/login', { email: 'noone@example.com', password: 'bad' });
+        assert.strictEqual(res.status, 200);
+        assert.ok(/Email ou mot de passe invalide/.test(res.body) || /mot de passe invalide/.test(res.body));
     });
 
     it('should show valid credentials on POST /login', async () => {
-        const child = spawn(SERVER_CMD, SERVER_ARGS, { cwd: CWD, env: { ...process.env, PORT }, stdio: ['ignore', 'pipe', 'pipe'] });
-        child.stderr.on('data', (d) => process.stderr.write(d.toString()));
-        try {
-            await waitForServer(child);
-            const res = await httpPost('/login', { email: 'a@a.fr', password: 'a' });
-            assert.strictEqual(res.status, 302);
-            assert.strictEqual(res.headers.location || res.headers.Location, '/');
-        } finally {
-            try { child.kill(); } catch (e) { }
-        }
+        const res = await httpPost('/login', { email: 'a@a.fr', password: 'a' });
+        assert.strictEqual(res.status, 302);
+        assert.strictEqual(res.headers.location || res.headers.Location, '/');
     });
 });
 

@@ -71,7 +71,8 @@ db.users.insertOne({
 });
 ```
 
-Puis tester le projet.
+Ensuite lancer le projet pour pouvoir lancer les tests.
 ```powershell
+node server.js
 npm test
 ```
