@@ -5,8 +5,6 @@ function buildValidator(schema, source = 'body') {
         if (error) {
             const errors = error.details.map(d => ({ path: d.path.join('.'), message: d.message }));
 
-            // If the client expects HTML (browser) or is a form POST and this is the login route,
-            // render the login page with the error and return 200 so browsers show the form again.
             const isLoginRoute = (req.path === '/login' || (req.originalUrl && req.originalUrl.startsWith('/login')));
             const isFormPost = req.headers && typeof req.headers['content-type'] === 'string' && req.headers['content-type'].includes('application/x-www-form-urlencoded');
             if (isLoginRoute && ((req.accepts && req.accepts('html')) || isFormPost)) {

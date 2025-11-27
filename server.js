@@ -8,6 +8,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const authMiddleware = require('./middlewares/auth');
+const morgan = require('morgan');
 
 
 const MONGO_URL = process.env.MONGO_URL || 'mongodb://localhost:27017';
@@ -21,12 +22,15 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+// HTTP request logging
+app.use(morgan('dev'));
+
 // parse cookies (for JWT cookie)
 app.use(cookieParser());
 
 // CORS configuration
 app.use(cors({
-    origin: true,
+    origin: process.env.CORS_ORIGIN,
     credentials: true
 }));
 
@@ -34,7 +38,22 @@ app.use(cors({
 app.use(authMiddleware.populateUser);
 
 // security: helmet
-app.use(helmet());
+app.use(helmet({ crossOriginEmbedderPolicy: false }));
+
+app.use((req, res, next) => {
+    const directives = [
+        "default-src 'self'",
+        "script-src 'self' 'unsafe-inline'",
+        "img-src 'self' https://a0.muscache.com https: data: blob:",
+        "style-src 'self' 'unsafe-inline'",
+        "connect-src 'self' https:",
+        "object-src 'none'",
+        "base-uri 'self'",
+        "frame-ancestors 'none'"
+    ];
+    res.setHeader('Content-Security-Policy', directives.join('; '));
+    next();
+});
 
 // global rate limiter
 const globalLimiter = rateLimit({
@@ -49,6 +68,21 @@ let db;
 
 app.use('/', routes);
 app.use('/', authRoutes);
+
+app.use((req, res, next) => {
+    const directives = [
+        "default-src 'self'",
+        "script-src 'self' 'unsafe-inline'",
+        "img-src 'self' data: blob: https://a0.muscache.com/im/pictures",
+        "style-src 'self' 'unsafe-inline'",
+        "connect-src 'self' https:",
+        "object-src 'none'",
+        "base-uri 'self'",
+        "frame-ancestors 'none'"
+    ];
+    res.setHeader('Content-Security-Policy', directives.join('; '));
+    next();
+});
 
 MongoClient.connect(MONGO_URL)
     .then(client => {

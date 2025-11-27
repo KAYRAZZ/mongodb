@@ -65,7 +65,7 @@ function httpPost(pathname, data) {
             let body = '';
             res.setEncoding('utf8');
             res.on('data', (c) => (body += c));
-            res.on('end', () => resolve({ status: res.statusCode, body }));
+            res.on('end', () => resolve({ status: res.statusCode, body, headers: res.headers }));
         });
         req.on('error', reject);
         req.write(postData);
@@ -99,15 +99,15 @@ describe('Auth routes', () => {
             try { child.kill(); } catch (e) { }
         }
     });
-    
+
     it('should show valid credentials on POST /login', async () => {
         const child = spawn(SERVER_CMD, SERVER_ARGS, { cwd: CWD, env: { ...process.env, PORT }, stdio: ['ignore', 'pipe', 'pipe'] });
         child.stderr.on('data', (d) => process.stderr.write(d.toString()));
         try {
             await waitForServer(child);
-            const res = await httpPost('/login', { email: 'a@a.fr', password: '$2a$12$WB31RQXWH.JpAqhAb.3k9e4cyhNkC31zl6ahIrS.J.XLJHOygog0i' });
-            assert.strictEqual(res.status, 200);
-            assert.ok(/Email ou mot de passe invalide/.test(res.body) || /mot de passe invalide/.test(res.body));
+            const res = await httpPost('/login', { email: 'a@a.fr', password: 'a' });
+            assert.strictEqual(res.status, 302);
+            assert.strictEqual(res.headers.location || res.headers.Location, '/');
         } finally {
             try { child.kill(); } catch (e) { }
         }

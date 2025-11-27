@@ -49,6 +49,29 @@ Exemple de document valide :
 {
 	"name": "a",
 	"email": "a@a",
-	"password": "$2a$10$...bcrypt-hash...",
+	"password": "$2a$12$WB31RQXWH.JpAqhAb.3k9e4cyhNkC31zl6ahIrS.J.XLJHOygog0i",
 }
+```
+
+## Préparer la base de données pour les tests
+
+Avant de lancer les tests, vous devez créer la base `users` et y ajouter un utilisateur de test.
+
+Ouvrez un shell Mongo :
+
+```powershell
+mongosh
+
+use users;
+
+db.users.insertOne({
+    name: "a",
+    email: "a@a.fr",
+    password: "$2a$12$WB31RQXWH.JpAqhAb.3k9e4cyhNkC31zl6ahIrS.J.XLJHOygog0i"
+});
+```
+
+Puis tester le projet.
+```powershell
+npm test
 ```
