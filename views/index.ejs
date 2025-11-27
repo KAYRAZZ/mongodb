@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Recherche</title>
+
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+            background-color: #f5f6fa;
+            color: #2d3436;
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            background: #fff;
+            border-radius: 1rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, .08);
+            width: 100%;
+            max-width: 600px;
+            padding: 2rem;
+        }
+
+        h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0 0 1.5rem;
+            color: #111;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
+
+        form {
+            display: flex;
+            gap: .5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        input[type="text"] {
+            flex: 1 1 auto;
+            min-width: 200px;
+            padding: .75rem .9rem;
+            border-radius: .6rem;
+            border: 1px solid #dcdde1;
+            font-size: 1rem;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        input[type="text"]:focus {
+            border-color: #0984e3;
+            box-shadow: 0 0 0 3px rgba(9, 132, 227, .15);
+        }
+
+        button {
+            background: #0984e3;
+            border: 0;
+            color: #fff;
+            font-weight: 600;
+            border-radius: .6rem;
+            padding: .75rem 1rem;
+            cursor: pointer;
+            font-size: .95rem;
+            line-height: 1.2;
+            white-space: nowrap;
+        }
+
+        button:hover {
+            background: #0770c2;
+        }
+
+        .logout-btn {
+            background: transparent;
+            color: #0984e3;
+            border: 1px solid #0984e3;
+            padding: .45rem .7rem;
+            border-radius: .6rem;
+            text-decoration: none;
+            font-weight: 600;
+            margin-left: auto;
+        }
+
+        .logout-btn:hover {
+            background: #eaf4ff;
+        }
+
+        .info {
+            font-size: .9rem;
+            color: #636e72;
+            margin-bottom: 1rem;
+        }
+
+        .results-wrapper {
+            border-top: 1px solid #eee;
+            padding-top: 1rem;
+        }
+
+        .no-results {
+            font-size: .95rem;
+            color: #b2bec3;
+            font-style: italic;
+            padding: .75rem 0;
+        }
+
+        ul.results-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            gap: .75rem;
+        }
+
+        li.result-item {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: .6rem;
+            padding: .75rem 1rem;
+        }
+
+        .item-title {
+            font-weight: 600;
+            color: #2d3436;
+            font-size: .95rem;
+            margin-bottom: .25rem;
+        }
+
+        .item-extra {
+            color: #636e72;
+            font-size: .85rem;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
+        /* Filters layout */
+        .filters {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: .5rem;
+            align-items: end;
+            margin-bottom: 1rem;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group label {
+            font-size: .85rem;
+            color: #333;
+            margin-bottom: .25rem;
+            font-weight: 600;
+        }
+
+        .filters .full-width {
+            grid-column: 1 / -1;
+        }
+
+        select,
+        input[type="number"],
+        input[type="text"] {
+            width: 100%;
+            box-sizing: border-box;
+            padding: .6rem .8rem;
+            border-radius: .5rem;
+            border: 1px solid #dcdde1;
+            outline: none;
+        }
+
+        select[multiple] {
+            height: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>
+            <span>Recherche</span>
+            <% if (typeof currentUser !=='undefined' && currentUser) { %>
+                <a href="/logout" class="logout-btn">Déconnexion</a>
+                <% } %>
+        </h1>
+        <!-- data holder for client JS (avoids putting EJS tags directly inside script) -->
+        <div id="app-data" data-selected-market="<%- selectedMarket || '' %>" style="display:none"></div>
+
+        <!-- Formulaire de saisie -->
+        <form method="GET" action="/search">
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="minPrice">Prix min</label>
+                    <input id="minPrice" type="number" name="minPrice" placeholder="Prix min" step="0.01"
+                        value="<%= typeof minPrice !== 'undefined' && minPrice !== null ? minPrice : '' %>" />
+                </div>
+
+                <div class="filter-group">
+                    <label for="maxPrice">Prix max</label>
+                    <input id="maxPrice" type="number" name="maxPrice" placeholder="Prix max" step="0.01"
+                        value="<%= typeof maxPrice !== 'undefined' && maxPrice !== null ? maxPrice : '' %>" />
+                </div>
+
+                <div class="filter-group">
+                    <label for="property_type">Type de logement</label>
+                    <select id="property_type" name="property_type">
+                        <option value="">Tous types</option>
+                        <% if (Array.isArray(propertyTypes)) { %>
+                            <% propertyTypes.forEach(function(pt){ %>
+                                <option value="<%= pt %>" <%=(typeof selectedPropertyType !=='undefined' &&
+                                    selectedPropertyType==pt) ? 'selected' : '' %>><%= pt %>
+                                </option>
+                                <% }) %>
+                                    <% } %>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="country">Pays</label>
+                    <select id="country" name="country">
+                        <option value="">Tous pays</option>
+                        <% if (Array.isArray(countries)) { %>
+                            <% countries.forEach(function(c){ %>
+                                <option value="<%= c %>" <%=(typeof selectedCountry !=='undefined' &&
+                                    selectedCountry==c) ? 'selected' : '' %>><%= c %>
+                                </option>
+                                <% }) %>
+                                    <% } %>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="market">Marché</label>
+                    <select id="market" name="market">
+                        <option value="">Tous marchés</option>
+                        <% if (Array.isArray(markets)) { %>
+                            <% markets.forEach(function(m){ %>
+                                <option value="<%= m %>" <%=(typeof selectedMarket !=='undefined' && selectedMarket==m)
+                                    ? 'selected' : '' %>><%= m %>
+                                </option>
+                                <% }) %>
+                                    <% } %>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="beds">Lits min</label>
+                    <input id="beds" type="number" name="beds" placeholder="Lits min" step="1"
+                        value="<%= typeof beds !== 'undefined' && beds !== null ? beds : '' %>" />
+                </div>
+
+                <div class="filter-group">
+                    <label>&nbsp;</label>
+                    <button type="submit">Rechercher</button>
+                </div>
+            </div>
+        </form>
+
+        <!-- Zone des résultats -->
+        <div class="results-wrapper">
+            <% if (Array.isArray(results) && results.length> 0) { %>
+                <ul class="results-list">
+                    <% results.forEach(function(item){ %>
+                        <li class="result-item">
+                            <% if (item.image) { %>
+                                <div style="margin-bottom:.5rem;">
+                                    <img src="<%= item.image %>" alt="image"
+                                        style="max-width:160px; height:auto; display:block;" />
+                                </div>
+                                <% } %>
+                                    <div class="item-title">
+                                        <%= item.name || '' %>
+                                    </div>
+                                    <div class="item-extra">
+                                        <div><strong>summary:</strong>
+                                            <%= item.summary || '' %>
+                                        </div>
+                                        <% if (typeof item.review_score !=='undefined' && item.review_score !==null) {
+                                            %>
+                                            <div><strong>Note (sur 100):</strong>
+                                                <%= item.review_score %>
+                                            </div>
+                                            <% } %>
+                                                <% if (item.property_type) { %>
+                                                    <div><strong>property_type:</strong>
+                                                        <%= item.property_type %>
+                                                    </div>
+                                                    <% } %>
+                                                        <% if (item.country) { %>
+                                                            <div><strong>country:</strong>
+                                                                <%= item.country %>
+                                                            </div>
+                                                            <% } %>
+                                                                <% if (typeof item.price !=='undefined' && item.price
+                                                                    !==null) { %>
+                                                                    <div><strong>price:</strong>
+                                                                        <%= item.price %> €
+                                                                    </div>
+                                                                    <% } %>
+                                                                        <% if (typeof item.beds !=='undefined' ) { %>
+                                                                            <div><strong>beds:</strong>
+                                                                                <%= item.beds %>
+                                                                            </div>
+                                                                            <% } %>
+                                                                                <% if (typeof item.bedrooms
+                                                                                    !=='undefined' ) { %>
+                                                                                    <div><strong>bedrooms:</strong>
+                                                                                        <%= item.bedrooms %>
+                                                                                    </div>
+                                                                                    <% } %>
+                                                                                        <% if (typeof
+                                                                                            item.minimum_nights
+                                                                                            !=='undefined' || typeof
+                                                                                            item.maximum_nights
+                                                                                            !=='undefined' ) { %>
+                                                                                            <div><strong>minimum_nights
+                                                                                                    /
+                                                                                                    maximum_nights:</strong>
+                                                                                                <%= (typeof
+                                                                                                    item.minimum_nights
+                                                                                                    !=='undefined' ?
+                                                                                                    item.minimum_nights
+                                                                                                    : '—' ) %>
+                                                                                                    /
+                                                                                                    <%= (typeof
+                                                                                                        item.maximum_nights
+                                                                                                        !=='undefined' ?
+                                                                                                        item.maximum_nights
+                                                                                                        : '—' ) %>
+                                                                                            </div>
+                                                                                            <% } %>
+                                    </div>
+                        </li>
+                        <% }) %>
+                </ul>
+                <% } else { %>
+                    <div class="no-results">
+                        <% if (typeof query==='undefined' || query.trim()==='' ) { %>
+                            (Pas encore de recherche)
+                            <% } else { %>
+                                Aucun résultat trouvé.
+                                <% } %>
+                    </div>
+                    <% } %>
+        </div>
+    </div>
+    </div>
+
+    <script>
+        (function () {
+            const countryEl = document.getElementById('country');
+            const marketEl = document.getElementById('market');
+
+            async function loadMarkets(country) {
+                const url = '/markets' + (country ? ('?country=' + encodeURIComponent(country)) : '');
+                try {
+                    const resp = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                    if (!resp.ok) throw new Error('Network response was not ok');
+                    const body = await resp.json();
+                    // reset options
+                    marketEl.innerHTML = '<option value="">Tous marchés</option>';
+                    if (Array.isArray(body.markets)) {
+                        body.markets.forEach(function (m) {
+                            const opt = document.createElement('option');
+                            opt.value = m;
+                            opt.textContent = m;
+                            marketEl.appendChild(opt);
+                        });
+                    }
+                    // restore previously selected market from DOM data attribute (only on initial load)
+                    const dataHolder = document.getElementById('app-data');
+                    const initialSelectedMarket = dataHolder ? dataHolder.dataset.selectedMarket : '';
+                } catch (err) {
+                    console.error('Could not load markets:', err);
+                }
+            }
+
+            if (countryEl && marketEl) {
+                countryEl.addEventListener('change', function () {
+                    loadMarkets(this.value);
+                });
+                // initial load if a country is already selected on page load
+                if (countryEl.value) loadMarkets(countryEl.value);
+            }
+        })();
+    </script>
+</body>
+
+</html>

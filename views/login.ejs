@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Connexion</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+            background: #f5f6fa;
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            color: #2d3436;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+        }
+
+        h1 {
+            margin: 0 0 1rem;
+            font-size: 1.25rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: .9rem;
+        }
+
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: .75rem .9rem;
+            border-radius: 8px;
+            border: 1px solid #e0e4e8;
+            box-sizing: border-box;
+            margin-bottom: .75rem;
+        }
+
+        .row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: .5rem;
+        }
+
+        .actions {
+            display: flex;
+            gap: .5rem;
+            margin-top: .75rem;
+        }
+
+        button {
+            background: #0984e3;
+            color: #fff;
+            border: 0;
+            padding: .65rem .9rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .secondary {
+            background: #f1f3f5;
+            color: #2d3436;
+            border: 1px solid #e6e9ec;
+        }
+
+        .error {
+            background: #ffecec;
+            color: #c0392b;
+            padding: .6rem .8rem;
+            border-radius: 6px;
+            margin-bottom: .75rem;
+            font-size: .95rem;
+        }
+
+        .small {
+            font-size: .9rem;
+            color: #636e72;
+        }
+
+        a {
+            color: #0984e3;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="card" role="main">
+        <h1>Se connecter</h1>
+
+        <% if (typeof error !=='undefined' && error) { %>
+            <div class="error">
+                <%= error %>
+            </div>
+            <% } %>
+
+                <form method="POST" action="/login" novalidate>
+                    <% if (typeof returnTo !=='undefined' && returnTo) { %>
+                        <input type="hidden" name="returnTo" value="<%= returnTo %>" />
+                        <% } %>
+                            <div>
+                                <label for="email">Adresse e‑mail</label>
+                                <input id="email" name="email" type="email" required placeholder="ex: vous@exemple.com"
+                                    value="<%= typeof email !== 'undefined' ? email : '' %>" />
+                            </div>
+
+                            <div>
+                                <label for="password">Mot de passe</label>
+                                <input id="password" name="password" type="password" required placeholder="••••••••" />
+                            </div>
+
+                            <div class="row">
+                                <label style="display:flex;align-items:center;gap:.4rem;font-weight:500;">
+                                    <input type="checkbox" name="remember" <%=remember ? 'checked' : '' %> />
+                                    <span class="small">Se souvenir de moi</span>
+                                </label>
+                                <a href="/forgot" class="small">Mot de passe oublié ?</a>
+                            </div>
+
+                            <div class="actions">
+                                <button type="submit">Connexion</button>
+                                <a href="/" class="secondary"
+                                    style="display:inline-flex;align-items:center;padding:.6rem .9rem;border-radius:8px;">Retour</a>
+                            </div>
+                </form>
+
+                <p class="small" style="margin-top:1rem;">
+                    Pas encore de compte ? <a href="/register">Inscription</a>
+                </p>
+    </main>
+</body>
+
+</html>
