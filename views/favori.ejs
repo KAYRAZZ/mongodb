@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Favoris</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+            background-color: #f5f6fa;
+            color: #2d3436;
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            background: #fff;
+            border-radius: 1rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, .08);
+            width: 100%;
+            max-width: 600px;
+            padding: 2rem;
+        }
+
+        h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0 0 1rem;
+            color: #111;
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+        }
+
+        a.button {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            background: #0984e3;
+            color: #fff;
+            padding: .6rem .9rem;
+            border-radius: .6rem;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: .95rem;
+        }
+
+        a.button:hover {
+            background: #0770c2;
+        }
+
+        .empty {
+            color: #636e72;
+            font-size: .95rem;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Mes favoris</h1>
+
+        <% if (Array.isArray(results) && results.length> 0) { %>
+            <ul style="list-style:none; padding:0; margin:0; display:grid; gap:0.75rem;">
+                <% results.forEach(function(item){ %>
+                    <li style="background:#f8f9fa; border:1px solid #e9ecef; border-radius:.6rem; padding:.75rem 1rem;">
+                        <% if (item.image) { %>
+                            <div style="margin-bottom:.5rem;">
+                                <img src="<%= item.image %>" alt="image"
+                                    style="max-width:160px; height:auto; display:block;" />
+                            </div>
+                            <% } %>
+                                <div style="font-weight:600; margin-bottom:.25rem; color:#2d3436;">
+                                    <%= item.name || '' %>
+                                </div>
+                                <div style="color:#636e72; font-size:.9rem; line-height:1.4;">
+                                    <% if (item.summary) { %>
+                                        <div><strong>summary:</strong>
+                                            <%= item.summary %>
+                                        </div>
+                                        <% } %>
+                                            <% if (typeof item.price !=='undefined' && item.price !==null) { %>
+                                                <div><strong>price:</strong>
+                                                    <%= item.price %> €
+                                                </div>
+                                                <% } %>
+                                                    <% if (item.country) { %>
+                                                        <div><strong>country:</strong>
+                                                            <%= item.country %>
+                                                        </div>
+                                                        <% } %>
+                                                            <% if (item.property_type) { %>
+                                                                <div><strong>property_type:</strong>
+                                                                    <%= item.property_type %>
+                                                                </div>
+                                                                <% } %>
+                                </div>
+                    </li>
+                    <% }) %>
+            </ul>
+            <% } else { %>
+                <p class="empty">Vous n'avez pas encore ajouté de favoris.</p>
+                <% } %>
+
+                    <div style="margin-top:1rem;">
+                        <a class="button" href="/">Retour à la recherche</a>
+                    </div>
+    </div>
+</body>
+
+</html>

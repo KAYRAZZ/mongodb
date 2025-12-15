@@ -185,11 +185,13 @@
         <h1>
             <span>Recherche</span>
             <% if (typeof currentUser !=='undefined' && currentUser) { %>
+                <a href="/favori" class="logout-btn" style="margin-right:.5rem;">Mes favoris</a>
                 <a href="/logout" class="logout-btn">Déconnexion</a>
                 <% } %>
         </h1>
         <!-- data holder for client JS (avoids putting EJS tags directly inside script) -->
-        <div id="app-data" data-selected-market="<%- selectedMarket || '' %>" style="display:none"></div>
+        <div id="app-data" data-selected-market="<%- selectedMarket || '' %>"
+            data-favorites='<%- JSON.stringify(favoritesIds || []) %>' style="display:none"></div>
 
         <!-- Formulaire de saisie -->
         <form method="GET" action="/search">
@@ -266,7 +268,7 @@
             <% if (Array.isArray(results) && results.length> 0) { %>
                 <ul class="results-list">
                     <% results.forEach(function(item){ %>
-                        <li class="result-item">
+                        <li class="result-item" data-id="<%= item.id %>">
                             <% if (item.image) { %>
                                 <div style="margin-bottom:.5rem;">
                                     <img src="<%= item.image %>" alt="image"
@@ -334,6 +336,15 @@
                                                                                                         : '—' ) %>
                                                                                             </div>
                                                                                             <% } %>
+                                                                                                <div
+                                                                                                    style="margin-top:.5rem; display:flex; gap:.5rem;">
+                                                                                                    <button
+                                                                                                        class="fav-btn"
+                                                                                                        type="button"
+                                                                                                        data-id="<%= item.id %>">Ajouter
+                                                                                                        aux
+                                                                                                        favoris</button>
+                                                                                                </div>
                                     </div>
                         </li>
                         <% }) %>
@@ -355,6 +366,47 @@
         (function () {
             const countryEl = document.getElementById('country');
             const marketEl = document.getElementById('market');
+            const dataHolder = document.getElementById('app-data');
+            const initialFavs = dataHolder ? JSON.parse(dataHolder.dataset.favorites || '[]') : [];
+            let favoritesSet = new Set(Array.isArray(initialFavs) ? initialFavs : []);
+
+            const refreshButtons = () => {
+                document.querySelectorAll('.fav-btn').forEach((btn) => {
+                    const id = btn.getAttribute('data-id');
+                    const isFav = id && favoritesSet.has(id);
+                    btn.textContent = isFav ? 'Retirer des favoris' : 'Ajouter aux favoris';
+                    btn.disabled = false;
+                });
+            };
+
+            document.querySelectorAll('.fav-btn').forEach((btn) => {
+                btn.addEventListener('click', async () => {
+                    const id = btn.getAttribute('data-id');
+                    if (!id) return;
+                    btn.disabled = true;
+                    try {
+                        const resp = await fetch('/favori', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({ listingId: id })
+                        });
+                        const body = await resp.json();
+                        if (resp.ok && body.status === 'added') {
+                            favoritesSet.add(id);
+                        } else if (resp.ok && body.status === 'removed') {
+                            favoritesSet.delete(id);
+                        }
+                    } catch (err) {
+                        console.error('Favorite toggle failed', err);
+                    }
+                    refreshButtons();
+                });
+            });
+
+            refreshButtons();
 
             async function loadMarkets(country) {
                 const url = '/markets' + (country ? ('?country=' + encodeURIComponent(country)) : '');

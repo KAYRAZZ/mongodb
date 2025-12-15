@@ -1,51 +1,59 @@
-const { ObjectId } = require('mongodb');
-const Listing = require('../models/listingModel');
-
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.marketsApi = exports.search = exports.home = void 0;
+const mongodb_1 = require("mongodb");
+const Listing = require("../models/listingModel");
 function buildTextFilter(q) {
-    if (!q) return null;
+    if (!q)
+        return null;
     const regex = new RegExp(q, 'i');
     const textOr = [{ name: regex }, { email: regex }, { title: regex }, { description: regex }];
-    if (ObjectId.isValid(q)) textOr.push({ _id: ObjectId(q) });
+    if (mongodb_1.ObjectId.isValid(q))
+        textOr.push({ _id: new mongodb_1.ObjectId(q) });
     return { $or: textOr };
 }
-
 function buildPriceFilter(minPrice, maxPrice) {
-    if (!Number.isFinite(minPrice) && !Number.isFinite(maxPrice)) return null;
+    const hasMin = Number.isFinite(minPrice);
+    const hasMax = Number.isFinite(maxPrice);
+    if (!hasMin && !hasMax)
+        return null;
     const priceCond = {};
-    if (Number.isFinite(minPrice)) priceCond.$gte = minPrice;
-    if (Number.isFinite(maxPrice)) priceCond.$lte = maxPrice;
+    if (hasMin)
+        priceCond.$gte = minPrice;
+    if (hasMax)
+        priceCond.$lte = maxPrice;
     return { price: priceCond };
 }
-
 function buildBedsFilter(beds) {
-    if (!Number.isFinite(beds)) return null;
+    if (!Number.isFinite(beds))
+        return null;
     return { beds: { $gte: beds } };
 }
-
 function buildPropertyTypeFilter(selectedPropertyType) {
-    if (!selectedPropertyType) return null;
+    if (!selectedPropertyType)
+        return null;
     return { property_type: selectedPropertyType };
 }
-
 function buildCountryFilter(selectedCountry) {
-    if (!selectedCountry) return null;
+    if (!selectedCountry)
+        return null;
     return { 'address.country': selectedCountry };
 }
-
 function buildMarketFilter(selectedMarket) {
-    if (!selectedMarket) return null;
+    if (!selectedMarket)
+        return null;
     return { 'address.market': selectedMarket };
 }
-
 function combineFilters(parts) {
     const p = parts.filter(Boolean);
-    if (p.length === 0) return {};
-    if (p.length === 1) return p[0];
+    if (p.length === 0)
+        return {};
+    if (p.length === 1)
+        return p[0];
     return { $and: p };
 }
-
-exports.home = async (req, res) => {
-    const db = req.app && req.app.locals && req.app.locals.db;
+const home = async (req, res) => {
+    const db = req.app?.locals?.db || undefined;
     let propertyTypes = [];
     let countries = [];
     try {
@@ -53,20 +61,33 @@ exports.home = async (req, res) => {
             propertyTypes = await Listing.distinctPropertyTypes(db);
             countries = await Listing.distinctCountries(db);
         }
-    } catch (err) {
-        console.warn('Could not fetch property types:', err && err.message);
     }
-    res.render('index', { query: undefined, results: [], minPrice: undefined, maxPrice: undefined, beds: undefined, propertyTypes, selectedPropertyType: undefined, countries, selectedCountry: undefined, markets: [], selectedMarket: undefined });
+    catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.warn('Could not fetch property types:', msg);
+    }
+    return res.render('index', {
+        query: undefined,
+        results: [],
+        minPrice: undefined,
+        maxPrice: undefined,
+        beds: undefined,
+        propertyTypes,
+        selectedPropertyType: undefined,
+        countries,
+        selectedCountry: undefined,
+        markets: [],
+        selectedMarket: undefined
+    });
 };
-
-exports.search = async (req, res) => {
-    const db = req.app && req.app.locals && req.app.locals.db;
-    const q = (req.query.q || '').trim();
+exports.home = home;
+const search = async (req, res) => {
+    const db = req.app?.locals?.db || undefined;
+    const q = (typeof req.query.q === 'string' ? req.query.q : '').trim();
     const rawMin = req.query.minPrice;
     const rawMax = req.query.maxPrice;
     const minPrice = rawMin !== undefined && rawMin !== '' ? Number(rawMin) : undefined;
     const maxPrice = rawMax !== undefined && rawMax !== '' ? Number(rawMax) : undefined;
-
     let propertyTypes = [];
     let countries = [];
     try {
@@ -74,41 +95,50 @@ exports.search = async (req, res) => {
             propertyTypes = await Listing.distinctPropertyTypes(db);
             countries = await Listing.distinctCountries(db);
         }
-    } catch (err) {
-        console.warn('Could not fetch property types or countries:', err && err.message);
     }
-
-    const selectedPropertyType = req.query.property_type && req.query.property_type !== '' ? req.query.property_type : undefined;
-    const selectedCountry = req.query.country && req.query.country !== '' ? req.query.country : undefined;
-
+    catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.warn('Could not fetch property types or countries:', msg);
+    }
+    const selectedPropertyType = typeof req.query.property_type === 'string' && req.query.property_type !== '' ? req.query.property_type : undefined;
+    const selectedCountry = typeof req.query.country === 'string' && req.query.country !== '' ? req.query.country : undefined;
     let markets = [];
     try {
         if (db) {
             markets = await Listing.distinctMarkets(db, selectedCountry);
         }
-    } catch (err) {
-        console.warn('Could not fetch markets:', err && err.message);
     }
-
-    const selectedMarket = req.query.market && req.query.market !== '' ? req.query.market : undefined;
+    catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.warn('Could not fetch markets:', msg);
+    }
+    const selectedMarket = typeof req.query.market === 'string' && req.query.market !== '' ? req.query.market : undefined;
     const rawBeds = req.query.beds;
     const beds = rawBeds !== undefined && rawBeds !== '' ? Number(rawBeds) : undefined;
-
     if (!q && minPrice === undefined && maxPrice === undefined && beds === undefined && !selectedPropertyType && !selectedCountry && !selectedMarket) {
-        return res.render('index', { query: q, results: [], minPrice: undefined, maxPrice: undefined, beds: undefined, propertyTypes, selectedPropertyType: undefined, countries, selectedCountry: undefined, markets, selectedMarket: undefined });
+        return res.render('index', {
+            query: q,
+            results: [],
+            minPrice: undefined,
+            maxPrice: undefined,
+            beds: undefined,
+            propertyTypes,
+            selectedPropertyType: undefined,
+            countries,
+            selectedCountry: undefined,
+            markets,
+            selectedMarket: undefined
+        });
     }
-
     const textFilter = buildTextFilter(q);
     const priceFilter = buildPriceFilter(minPrice, maxPrice);
     const bedsFilter = buildBedsFilter(beds);
     const propertyTypeFilter = buildPropertyTypeFilter(selectedPropertyType);
     const countryFilter = buildCountryFilter(selectedCountry);
     const marketFilter = buildMarketFilter(selectedMarket);
-
     const filter = combineFilters([textFilter, priceFilter, bedsFilter, propertyTypeFilter, countryFilter, marketFilter]);
-
     const results = db ? await Listing.findListings(db, filter) : [];
-    const mapped = results.map(r => ({
+    const mapped = results.map((r) => ({
         id: r._id,
         name: r.name,
         summary: r.summary,
@@ -122,18 +152,23 @@ exports.search = async (req, res) => {
         minimum_nights: r.minimum_nights,
         maximum_nights: r.maximum_nights,
     }));
-    res.render('index', { query: q, results: mapped, minPrice: minPrice, maxPrice: maxPrice, beds: beds, propertyTypes, selectedPropertyType, countries, selectedCountry, markets, selectedMarket });
+    return res.render('index', { query: q, results: mapped, minPrice, maxPrice, beds, propertyTypes, selectedPropertyType, countries, selectedCountry, markets, selectedMarket });
 };
-
-exports.marketsApi = async (req, res) => {
-    const db = req.app && req.app.locals && req.app.locals.db;
-    const country = req.query.country && req.query.country !== '' ? req.query.country : undefined;
+exports.search = search;
+const marketsApi = async (req, res) => {
+    const db = req.app?.locals?.db || undefined;
+    const country = typeof req.query.country === 'string' && req.query.country !== '' ? req.query.country : undefined;
     try {
-        if (!db) return res.json({ markets: [] });
+        if (!db)
+            return res.json({ markets: [] });
         const markets = await Listing.distinctMarkets(db, country);
         return res.json({ markets });
-    } catch (err) {
-        console.warn('Error fetching markets API:', err && err.message);
+    }
+    catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.warn('Error fetching markets API:', msg);
         return res.status(500).json({ markets: [] });
     }
 };
+exports.marketsApi = marketsApi;
+//# sourceMappingURL=indexController.js.map

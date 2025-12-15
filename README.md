@@ -55,24 +55,32 @@ Exemple de document valide :
 
 ## Préparer la base de données pour les tests
 
-Avant de lancer les tests, vous devez créer la base `users` et y ajouter un utilisateur de test.
+Avant de lancer les tests, vous devez créer les bases `users` et `favorites` et y ajouter un utilisateur de test ainsi qu'un favori.
 
 Ouvrez un shell Mongo :
 
 ```powershell
 mongosh
 
-use users;
+use mydatabase
 
+db.createCollection("users")
 db.users.insertOne({
     name: "a",
     email: "a@a.fr",
     password: "$2a$12$WB31RQXWH.JpAqhAb.3k9e4cyhNkC31zl6ahIrS.J.XLJHOygog0i"
 });
+
+db.createCollection("favorites")
+db.favorites.insertOne({
+    userId: 123,
+    listingId: 456
+});
+
 ```
 
 Ensuite lancer le projet pour pouvoir lancer les tests.
 ```powershell
-node server.js
+node dist/server.js
 npm test
 ```
