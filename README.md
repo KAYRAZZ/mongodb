@@ -55,7 +55,7 @@ Exemple de document valide :
 
 ## Préparer la base de données pour les tests
 
-Avant de lancer les tests, vous devez créer les bases `users` et `favorites` et y ajouter un utilisateur de test ainsi qu'un favori.
+Avant de lancer les tests, vous devez créer les bases `users` et `favorites` et y ajouter un utilisateur de test ainsi qu'un favori dans une base de MongoDB.
 
 Ouvrez un shell Mongo :
 
