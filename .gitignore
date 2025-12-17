@@ -1,5 +1,6 @@
 # Node modules
 node_modules
+package-lock.json
 
 # Logs
 logs/
@@ -26,7 +27,6 @@ coverage/
 test-results/
 
 # Build output
-dist/
 build/
 .parcel-cache/
 .next/
