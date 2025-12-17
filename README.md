@@ -79,8 +79,9 @@ db.favorites.insertOne({
 
 ```
 
-Ensuite lancer le projet pour pouvoir lancer les tests.
+Ensuite lancer le projet pour pouvoir lancer le projet et les tests.
 ```powershell
+npm run start
 node dist/server.js
 npm test
 ```

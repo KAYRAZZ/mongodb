@@ -1,14 +1,8 @@
 import { Db } from 'mongodb';
-
-export type FavoriteDoc = {
-    _id?: any;
-    userId: string;
-    listingId: string;
-    createdAt: Date;
-};
+import { IFavorite } from './types';
 
 export async function toggleFavorite(db: Db, userId: string, listingId: string): Promise<'added' | 'removed'> {
-    const col = db.collection<FavoriteDoc>('favorites');
+    const col = db.collection<IFavorite>('favorites');
     const existing = await col.findOne({ userId, listingId });
     if (existing) {
         await col.deleteOne({ _id: existing._id });
@@ -19,7 +13,7 @@ export async function toggleFavorite(db: Db, userId: string, listingId: string):
 }
 
 export async function listFavoritesIds(db: Db, userId: string): Promise<string[]> {
-    const col = db.collection<FavoriteDoc>('favorites');
+    const col = db.collection<IFavorite>('favorites');
     const items = await col.find({ userId }).toArray();
     return items.map((f) => f.listingId);
 }

@@ -1,4 +1,5 @@
 import { Db } from 'mongodb';
+import { IListingDoc } from './types';
 
 async function distinctPropertyTypes(db: Db): Promise<string[]> {
     if (!db) return [] as string[];
@@ -36,12 +37,12 @@ async function distinctMarkets(db: Db, country?: string): Promise<string[]> {
     }
 }
 
-async function findListings(db: Db, filter: any, limit: number = 50): Promise<any[]> {
+async function findListings(db: Db, filter: any, limit: number = 50): Promise<IListingDoc[]> {
     if (!db) return [];
     try {
         const col = db.collection('listingsAndReviews');
         const results = await col.find(filter).limit(limit).toArray();
-        return results as any[];
+        return results as IListingDoc[];
     } catch (e: any) {
         console.warn('findListings error', e && e.message);
         return [];
