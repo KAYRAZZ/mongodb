@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.logout = exports.login = exports.showLogin = void 0;
+exports.register = exports.showRegister = exports.logout = exports.login = exports.showLogin = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const User = require("../models/userModel");
@@ -69,4 +69,55 @@ const logout = (req, res) => {
     return res.redirect('/');
 };
 exports.logout = logout;
+const showRegister = (req, res) => {
+    const email = typeof req.query.email === 'string' ? req.query.email : undefined;
+    const name = typeof req.query.name === 'string' ? req.query.name : undefined;
+    const error = typeof req.query.error === 'string' ? req.query.error : undefined;
+    const success = typeof req.query.success === 'string' ? req.query.success : undefined;
+    return res.render('register', { email, name, error, success });
+};
+exports.showRegister = showRegister;
+const register = async (req, res) => {
+    const { usersDb } = getDbs(req);
+    const { email, password, name } = (req.body || {});
+    if (!email || !password) {
+        return res.render('register', { error: 'Email et mot de passe requis', email });
+    }
+    try {
+        // Vérifier si l'utilisateur existe déjà
+        const existingUser = await User.findByEmail(usersDb, email);
+        if (existingUser) {
+            return res.render('register', { error: 'Cet email est déjà utilisé', email, name });
+        }
+        // Hasher le mot de passe
+        const hashedPassword = await bcryptjs_1.default.hash(password, 10);
+        // Créer l'utilisateur
+        const newUser = {
+            email: String(email).toLowerCase(),
+            password: hashedPassword,
+            name: name || email.split('@')[0],
+            createdAt: new Date()
+        };
+        const created = await User.create(usersDb, newUser);
+        if (!created) {
+            return res.render('register', { error: 'Erreur lors de la création du compte', email, name });
+        }
+        // Connecter automatiquement l'utilisateur
+        const payload = { id: created._id.toString(), email: created.email };
+        const token = jsonwebtoken_1.default.sign(payload, JWT_SECRET, { expiresIn: 60 * 60 });
+        const cookieOptions = {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax'
+        };
+        res.cookie('token', token, cookieOptions);
+        return res.redirect('/');
+    }
+    catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.error('Register error', message);
+        return res.render('register', { error: 'Erreur serveur', email, name });
+    }
+};
+exports.register = register;
 //# sourceMappingURL=authController.js.map

@@ -30,4 +30,27 @@ router.post(
 
 router.get('/logout', authController.logout);
 
+router.get('/register', redirectIfAuthenticated, authController.showRegister);
+
+const registerLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 5,
+    message: 'Trop de tentatives d\'inscription, réessayez plus tard.'
+});
+
+const registerSchema = Joi.object({
+    name: Joi.string().min(2).max(100),
+    email: Joi.string().email().required(),
+    password: Joi.string().min(6).required(),
+    confirmPassword: Joi.string().required().valid(Joi.ref('password'))
+});
+
+router.post(
+    '/register',
+    redirectIfAuthenticated,
+    validateBody(registerSchema),
+    registerLimiter,
+    authController.register
+);
+
 export default router;

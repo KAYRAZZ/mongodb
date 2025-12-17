@@ -84,3 +84,68 @@ export const logout = (req: Request, res: Response) => {
     }
     return res.redirect('/');
 };
+
+export const showRegister = (req: Request, res: Response) => {
+    const email = typeof req.query.email === 'string' ? req.query.email : undefined;
+    const name = typeof req.query.name === 'string' ? req.query.name : undefined;
+    const error = typeof req.query.error === 'string' ? req.query.error : undefined;
+    const success = typeof req.query.success === 'string' ? req.query.success : undefined;
+
+    return res.render('register', { email, name, error, success });
+};
+
+type RegisterBody = RequestBody & {
+    name?: string;
+    confirmPassword?: string;
+};
+
+export const register = async (req: Request, res: Response) => {
+    const { usersDb } = getDbs(req);
+    const { email, password, name } = (req.body || {}) as RegisterBody;
+
+    if (!email || !password) {
+        return res.render('register', { error: 'Email et mot de passe requis', email });
+    }
+
+    try {
+        // Vérifier si l'utilisateur existe déjà
+        const existingUser = await User.findByEmail(usersDb as Db, email);
+        if (existingUser) {
+            return res.render('register', { error: 'Cet email est déjà utilisé', email, name });
+        }
+
+        // Hasher le mot de passe
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Créer l'utilisateur
+        const newUser = {
+            email: String(email).toLowerCase(),
+            password: hashedPassword,
+            name: name || email.split('@')[0],
+            createdAt: new Date()
+        };
+
+        const created = await User.create(usersDb as Db, newUser as any);
+        if (!created) {
+            return res.render('register', { error: 'Erreur lors de la création du compte', email, name });
+        }
+
+        // Connecter automatiquement l'utilisateur
+        const payload = { id: created._id.toString(), email: created.email };
+        const token = jwt.sign(payload, JWT_SECRET, { expiresIn: 60 * 60 });
+
+        const cookieOptions: CookieOptions = {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax'
+        };
+
+        res.cookie('token', token, cookieOptions);
+
+        return res.redirect('/');
+    } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.error('Register error', message);
+        return res.render('register', { error: 'Erreur serveur', email, name });
+    }
+};

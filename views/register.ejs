@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Inscription</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+            background: #f5f6fa;
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            color: #2d3436;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+        }
+
+        h1 {
+            margin: 0 0 1rem;
+            font-size: 1.25rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: .9rem;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: .75rem .9rem;
+            border-radius: 8px;
+            border: 1px solid #e0e4e8;
+            box-sizing: border-box;
+            margin-bottom: .75rem;
+        }
+
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+        }
+
+        button {
+            flex: 1;
+            padding: .75rem 1rem;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: .9rem;
+            transition: all .2s ease;
+        }
+
+        button[type="submit"] {
+            background: #ff5a5f;
+            color: #fff;
+        }
+
+        button[type="submit"]:hover {
+            background: #e74c50;
+            box-shadow: 0 4px 12px rgba(255, 90, 95, 0.3);
+        }
+
+        .alert {
+            padding: .75rem .9rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: .9rem;
+        }
+
+        .alert.error {
+            background: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+        }
+
+        .alert.success {
+            background: #efe;
+            color: #3c3;
+            border: 1px solid #cfc;
+        }
+
+        .links {
+            text-align: center;
+            margin-top: 1rem;
+            font-size: .9rem;
+        }
+
+        .links a {
+            color: #ff5a5f;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1>Créer un compte</h1>
+
+        <% if (error) { %>
+            <div class="alert error">
+                <%= error %>
+            </div>
+            <% } %>
+
+                <% if (success) { %>
+                    <div class="alert success">
+                        <%= success %>
+                    </div>
+                    <% } %>
+
+                        <form method="POST" action="/register">
+                            <label for="name">Nom (optionnel)</label>
+                            <input type="text" id="name" name="name" placeholder="Votre nom"
+                                value="<%= name || '' %>" />
+
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" placeholder="votre@email.com"
+                                value="<%= email || '' %>" required />
+
+                            <label for="password">Mot de passe</label>
+                            <input type="password" id="password" name="password" placeholder="Au moins 6 caractères"
+                                required />
+
+                            <label for="confirmPassword">Confirmer le mot de passe</label>
+                            <input type="password" id="confirmPassword" name="confirmPassword"
+                                placeholder="Confirmer votre mot de passe" required />
+
+                            <div class="actions">
+                                <button type="submit">S'inscrire</button>
+                            </div>
+                        </form>
+
+                        <div class="links">
+                            Vous avez déjà un compte ? <a href="/login">Se connecter</a>
+                        </div>
+    </div>
+</body>
+
+</html>

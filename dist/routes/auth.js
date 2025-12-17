@@ -55,5 +55,18 @@ const loginSchema = joi_1.default.object({
 });
 router.post('/login', auth_1.redirectIfAuthenticated, (0, validation_1.validateBody)(loginSchema), loginLimiter, authController.login);
 router.get('/logout', authController.logout);
+router.get('/register', auth_1.redirectIfAuthenticated, authController.showRegister);
+const registerLimiter = (0, express_rate_limit_1.default)({
+    windowMs: 15 * 60 * 1000,
+    max: 5,
+    message: 'Trop de tentatives d\'inscription, réessayez plus tard.'
+});
+const registerSchema = joi_1.default.object({
+    name: joi_1.default.string().min(2).max(100),
+    email: joi_1.default.string().email().required(),
+    password: joi_1.default.string().min(6).required(),
+    confirmPassword: joi_1.default.string().required().valid(joi_1.default.ref('password'))
+});
+router.post('/register', auth_1.redirectIfAuthenticated, (0, validation_1.validateBody)(registerSchema), registerLimiter, authController.register);
 exports.default = router;
 //# sourceMappingURL=auth.js.map

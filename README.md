@@ -79,9 +79,14 @@ db.favorites.insertOne({
 
 ```
 
-Ensuite lancer le projet pour pouvoir lancer le projet et les tests.
+Pour compiler et lancer le projet (sinon voir package.json)
 ```powershell
 npm run start
-node dist/server.js
+```
+
+Pour tester projet
+```powershell
 npm test
 ```
+
+Pour changer de BD, il faut aller dans server.js
